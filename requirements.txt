@@ -7,4 +7,7 @@ cryptography
 web3
 python-jose
 passlib[bcrypt]
-python-multipart
+python-multipartecdsa
+ecdsa
+ecdsa>=0.18
+cryptography>=42

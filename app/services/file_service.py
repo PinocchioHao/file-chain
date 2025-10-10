@@ -13,6 +13,12 @@ def save_file_to_disk(file, stored_filename: str) -> str:
         f.write(content)
     return file_path, content
 
+def save_bytes_to_disk(content: bytes, stored_filename: str) -> str:
+    file_path = os.path.join(UPLOAD_DIR, stored_filename)
+    with open(file_path, "wb") as f:
+        f.write(content)
+    return file_path
+
 def create_file_record(db: Session, owner_id: int, owner_name: str, filename: str, stored_filename: str, signature, ecc_aes_key, content: bytes):
     file_hash = hashlib.sha256(content).hexdigest()
 

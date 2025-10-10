@@ -1,5 +1,5 @@
 import os
-from fastapi import APIRouter, UploadFile, Depends, HTTPException
+from fastapi import APIRouter, UploadFile, Depends, HTTPException, Form
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 from datetime import datetime
@@ -10,8 +10,6 @@ from app.schemas.file import FileOut
 from app.core.security import get_current_user
 from app.models.user import User
 from app.core.crypto import (
-    load_private_key_from_der_b64,
-    sign_data,
     load_public_key_from_der_b64,
     aes_gcm_encrypt,
     ecies_encrypt_for_public_key,
@@ -28,6 +26,7 @@ router = APIRouter(prefix="/file", tags=["file"])
 @router.post("/upload", response_model=FileOut)
 async def upload_file(
     file: UploadFile,
+    signature: str = Form(...),  # 客户端提供 Base64(ASN.1 DER) 签名
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
@@ -37,10 +36,8 @@ async def upload_file(
     # 读取原始文件字节
     content: bytes = await file.read()
 
-    # TODO 文件用用户ECDSA私钥签名，得到的signature稍后入库（已实现：Base64编码DER签名）
-    ecdsa_priv = load_private_key_from_der_b64(current_user.ecdsa_private_key)
-    signature_bytes = sign_data(ecdsa_priv, content)
-    signature_b64 = base64.b64encode(signature_bytes).decode()
+    # TODO 文件用用户ECDSA私钥签名，得到的signature稍后入库（已实现：由客户端传入的 Base64 编码 DER 签名）
+    signature_b64 = signature
 
     # TODO 文件加密得到加密后的文件，将AES用用户的ECC私钥加密（已实现：AES-GCM加密 + ECIES封装AES）
     aes_key = os.urandom(32)

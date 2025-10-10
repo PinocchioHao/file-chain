@@ -4,9 +4,7 @@ CREATE TABLE users (
     username VARCHAR(100) UNIQUE NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
     ecc_public_key TEXT NOT NULL,
-    ecc_private_key TEXT NOT NULL,
     ecdsa_public_key TEXT NOT NULL,
-    ecdsa_private_key TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -17,10 +15,10 @@ CREATE TABLE files (
     filename VARCHAR(255) NOT NULL,
     stored_filename VARCHAR(255) NOT NULL,
     hash VARCHAR(64) NOT NULL,
-    signature TEXT NOT NULL,           -- 文件签名（ECC）
-    file_ecc_aes_key TEXT NOT NULL,    -- ECC加密后的AES密钥
+    signature TEXT NOT NULL,           -- 文件签名（ECDSA），Base64(ASN.1 DER)
+    file_ecc_aes_key TEXT NOT NULL,    -- ECIES封装后的AES密钥(JSON: ephemeral_pub_der_b64, nonce_b64, ciphertext_b64)
     owner_id INT NOT NULL,
-    owner_name VARCHAR(100),
+    owner_name VARCHAR(100) NOT NULL,
     uploaded_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -32,7 +30,7 @@ CREATE TABLE requests (
     owner_id INT NOT NULL,
     status ENUM('pending', 'approved', 'rejected') DEFAULT 'pending',
     owner_ecc_public_key TEXT,
-    encrypted_aes_key TEXT,
+    encrypted_aes_key TEXT,            -- 与 files.file_ecc_aes_key 同结构的 JSON
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );

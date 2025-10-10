@@ -8,12 +8,10 @@ class User(Base):
     username = Column(String(50), unique=True, index=True, nullable=False)
     password_hash = Column(String(255), nullable=False)
 
-    # ECC (密钥共享)
+    # ECC (密钥共享) - 仅存公钥，私钥不入库
     ecc_public_key = Column(String(255), nullable=False)
-    ecc_private_key = Column(String(255), nullable=False)
 
-    # ECDSA (签名)
+    # ECDSA (签名) - 仅存公钥，私钥不入库
     ecdsa_public_key = Column(String(255), nullable=False)
-    ecdsa_private_key = Column(String(255), nullable=False)
 
     created_at = Column(DateTime, server_default=func.now())

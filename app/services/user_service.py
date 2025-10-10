@@ -31,7 +31,7 @@ def register_user(db: Session, user_in: UserCreate):
     # 2. TODO 密码 hash - 报错，有问题（已实现：使用 get_password_hash 进行 bcrypt 哈希）
     hashed_pw = get_password_hash(user_in.password)
 
-    # 3. TODO 生成 ECC/ECDSA 密钥对 - 生成的不完整（已实现：两套 EC(SECP256R1)，并以 DER+Base64 存库）
+    # 3. TODO 生成 ECC/ECDSA 密钥对 - 生成的不完整（已实现：两套 EC(SECP256R1)，私钥仅返回给客户端）
     ecc_priv_obj, ecc_pub_obj = generate_ecc_keypair()
     ecdsa_priv_obj, ecdsa_pub_obj = generate_ecc_keypair()
 
@@ -40,16 +40,14 @@ def register_user(db: Session, user_in: UserCreate):
     ecdsa_public_key = serialize_public_key_der_b64(ecdsa_pub_obj)
     ecdsa_private_key = serialize_private_key_der_b64(ecdsa_priv_obj)
 
-    # 4. 存数据库
+    # 4. 存数据库（仅存公钥）
     new_user = User(
         username=user_in.username,
         password_hash=hashed_pw,
         ecc_public_key=ecc_public_key,
-        ecc_private_key=ecc_private_key,
         ecdsa_public_key=ecdsa_public_key,
-        ecdsa_private_key=ecdsa_private_key,
     )
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
-    return new_user
+    return new_user, ecc_private_key, ecdsa_private_key

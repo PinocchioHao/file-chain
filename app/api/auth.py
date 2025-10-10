@@ -10,10 +10,18 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 
 @router.post("/register", response_model=UserResponse)
 def register(user_in: UserCreate, db: Session = Depends(get_db)):
-    user = register_user(db, user_in)
-    if not user:
+    result = register_user(db, user_in)
+    if not result:
         raise HTTPException(status_code=400, detail="User already exists")
-    return user
+    user, ecc_private_key, ecdsa_private_key = result
+    return UserResponse(
+        id=user.id,
+        username=user.username,
+        ecc_public_key=user.ecc_public_key,
+        ecdsa_public_key=user.ecdsa_public_key,
+        ecc_private_key=ecc_private_key,
+        ecdsa_private_key=ecdsa_private_key,
+    )
 
 
 @router.post("/login")

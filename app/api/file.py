@@ -1,14 +1,16 @@
 import os
-from fastapi import APIRouter, UploadFile, Depends, HTTPException
-from fastapi.responses import FileResponse
-from sqlalchemy.orm import Session
 from datetime import datetime
 
-from app.db import get_db
-from app.services import file_service
-from app.schemas.file import FileOut
+from fastapi import APIRouter, UploadFile, Depends, HTTPException, Form
+from fastapi.responses import FileResponse
+from sqlalchemy.orm import Session
+
 from app.core.security import get_current_user
+from app.db import get_db
 from app.models.user import User
+from app.schemas.file import FileOut
+from app.services import file_service
+from app.services.blockchain_service import record_file_upload
 
 router = APIRouter(prefix="/file", tags=["file"])
 
@@ -16,35 +18,30 @@ router = APIRouter(prefix="/file", tags=["file"])
 # 🔹 上传文件
 @router.post("/upload", response_model=FileOut)
 async def upload_file(
-    file: UploadFile,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+        file: UploadFile,
+        signature: str = Form(...),  # 客户端提供签名 JSON 字符串
+        db: Session = Depends(get_db),
+        current_user: User = Depends(get_current_user)
 ):
     timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
     stored_filename = f"{timestamp}_{file.filename}"
 
-    # TODO 文件用用户ECDSA私钥签名，得到的signature稍后入库
-    # TODO 文件加密得到加密后的文件，将AES用用户的ECC私钥加密
-    # 🔹 这里先用dummy数据，后续替换成真实加密/签名逻辑
-    dummy_signature = f"signature_of_{file.filename}"
-    dummy_ecc_aes_key = f"ecc_encrypted_aes_key_for_{file.filename}"
+    # 保存文件到磁盘
+    file_path, content = await file_service.save_file_to_disk(file, stored_filename)
 
-
-    # 上传（先存明文，TODO 后面替换成加密文件）
-    file_path, content = file_service.save_file_to_disk(file, stored_filename)
-
-    # 生成签名和加密AES密钥（dummy）
+    # 写数据库记录（不存 AES）
     db_file = file_service.create_file_record(
         db,
         owner_id=current_user.id,
         owner_name=current_user.username,
         filename=file.filename,
         stored_filename=stored_filename,
-        signature=dummy_signature,
-        ecc_aes_key=dummy_ecc_aes_key,
-        content=content
+        signature=signature,
+        content=content,
     )
-    # TODO 上传成功后记录文件元信息到区块链
+
+    # TODO 记录区块链元信息
+    record_file_upload(db_file.id, current_user.id, db_file.hash)
     return db_file
 
 

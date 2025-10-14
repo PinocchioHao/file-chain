@@ -1,20 +1,31 @@
-# app/main.py
 from fastapi import FastAPI
-from app.db import Base, engine
-from app.api import auth   # 导入路由文件
+from fastapi.middleware.cors import CORSMiddleware
+
+from app.api import auth
 from app.api import file
 from app.api import request
 
-# 创建数据库表（只会在第一次时生效）
-# Base.metadata.create_all(bind=engine)
-
-# FastAPI 应用
 app = FastAPI(title="FileChain API")
+
+# 添加 CORS 中间件 TODO CORS配置，上线注意配
+origins = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,  # 允许的前端地址
+    allow_credentials=True,
+    allow_methods=["*"],  # 允许所有 HTTP 方法
+    allow_headers=["*"],  # 允许所有请求头
+)
 
 # 挂载路由
 app.include_router(auth.router)
 app.include_router(file.router)
 app.include_router(request.router)
+
 
 @app.get("/")
 def read_root():

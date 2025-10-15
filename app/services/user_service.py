@@ -1,6 +1,5 @@
 from sqlalchemy.orm import Session
-
-from app.core.security import verify_password, create_access_token
+from app.core.security import verify_password, create_access_token, get_password_hash
 from app.models.user import User
 from app.schemas.user import UserCreate
 from app.schemas.user import UserLogin
@@ -29,6 +28,9 @@ def register_user(db: Session, user_in: UserCreate):
     existing = db.query(User).filter(User.username == user_in.username).first()
     if existing:
         return None
+
+    # 2. 加密密码
+    hashed_pw = get_password_hash(user_in.password)
 
     # 4. 存数据库（仅存公钥）
     new_user = User(

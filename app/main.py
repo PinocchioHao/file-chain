@@ -7,10 +7,11 @@ from app.api import request
 
 app = FastAPI(title="FileChain API")
 
-# 添加 CORS 中间件 TODO CORS配置，上线注意配
+# 添加 CORS 中间件
 origins = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
+    "http://13.237.197.44:8899",  # 前端服务地址
 ]
 
 app.add_middleware(

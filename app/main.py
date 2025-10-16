@@ -4,13 +4,15 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api import auth
 from app.api import file
 from app.api import request
+from app.api import blockchain
 
 app = FastAPI(title="FileChain API")
 
-# 添加 CORS 中间件 TODO CORS配置，上线注意配
+# 添加 CORS 中间件
 origins = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
+    "http://13.237.197.44:8899",  # 前端服务地址
 ]
 
 app.add_middleware(
@@ -25,6 +27,7 @@ app.add_middleware(
 app.include_router(auth.router)
 app.include_router(file.router)
 app.include_router(request.router)
+app.include_router(blockchain.router)
 
 
 @app.get("/")

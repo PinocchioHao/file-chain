@@ -20,4 +20,4 @@ class UserResponse(BaseModel):
     ecdsa_public_key: str
 
     class Config:
-        orm_mode = True
+        from_attributes = True

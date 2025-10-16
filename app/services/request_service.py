@@ -1,3 +1,5 @@
+from typing import Optional, List
+
 from sqlalchemy.orm import Session
 from sqlalchemy.orm import aliased
 
@@ -44,49 +46,49 @@ def get_requests_by_requester(db: Session, requester_id: int):
     )
 
 
-def get_requests_by_owner(db: Session, owner_id: int):
-    # 查询待审批请求，同时获取文件拥有者用户名和文件名
-    return (
-        db.query(
-            FileRequest,
-            File.filename.label("file_name"),
-            User.username.label("owner_username")  # 文件拥有者用户名
-        )
-        .join(File, File.id == FileRequest.file_id)
-        .join(User, User.id == FileRequest.owner_id)
-        .filter(FileRequest.owner_id == owner_id, FileRequest.status == RequestStatus.pending)
-        .all()
-    )
-
-
-def get_requests_with_users(db: Session, user_id: int, for_owner: bool = False):
-    """
-    获取请求记录，同时联表文件表和申请人/拥有者信息
-    - for_owner=False: 查询我的申请
-    - for_owner=True: 查询待审批请求
-    """
-    requester_alias = aliased(User)
-    owner_alias = aliased(User)
-
-    query = (
-        db.query(
-            FileRequest,
-            File.filename.label("file_name"),
-            File.signature.label("signature"),
-            requester_alias.username.label("requester_username"),
-            owner_alias.username.label("owner_username")
-        )
-        .join(File, File.id == FileRequest.file_id)
-        .join(requester_alias, requester_alias.id == FileRequest.requester_id)
-        .join(owner_alias, owner_alias.id == FileRequest.owner_id)
-    )
-
-    if for_owner:
-        query = query.filter(FileRequest.owner_id == user_id, FileRequest.status == RequestStatus.pending)
-    else:
-        query = query.filter(FileRequest.requester_id == user_id)
-
-    return query.all()
+# def get_requests_by_owner(db: Session, owner_id: int):
+#     # 查询待审批请求，同时获取文件拥有者用户名和文件名
+#     return (
+#         db.query(
+#             FileRequest,
+#             File.filename.label("file_name"),
+#             User.username.label("owner_username")  # 文件拥有者用户名
+#         )
+#         .join(File, File.id == FileRequest.file_id)
+#         .join(User, User.id == FileRequest.owner_id)
+#         .filter(FileRequest.owner_id == owner_id, FileRequest.status == RequestStatus.pending)
+#         .all()
+#     )
+#
+#
+# def get_requests_with_users(db: Session, user_id: int, for_owner: bool = False):
+#     """
+#     获取请求记录，同时联表文件表和申请人/拥有者信息
+#     - for_owner=False: 查询我的申请
+#     - for_owner=True: 查询待审批请求
+#     """
+#     requester_alias = aliased(User)
+#     owner_alias = aliased(User)
+#
+#     query = (
+#         db.query(
+#             FileRequest,
+#             File.filename.label("file_name"),
+#             File.signature.label("signature"),
+#             requester_alias.username.label("requester_username"),
+#             owner_alias.username.label("owner_username")
+#         )
+#         .join(File, File.id == FileRequest.file_id)
+#         .join(requester_alias, requester_alias.id == FileRequest.requester_id)
+#         .join(owner_alias, owner_alias.id == FileRequest.owner_id)
+#     )
+#
+#     if for_owner:
+#         query = query.filter(FileRequest.owner_id == user_id, FileRequest.status == RequestStatus.pending)
+#     else:
+#         query = query.filter(FileRequest.requester_id == user_id)
+#
+#     return query.all()
 
 
 def approve_request(db: Session, approve_data: FileRequestApprove, owner_id: int):
@@ -106,3 +108,34 @@ def approve_request(db: Session, approve_data: FileRequestApprove, owner_id: int
     db.commit()
     db.refresh(req)
     return req
+
+
+def get_requests_with_users(db, user_id: int, for_owner: bool = False, status: Optional[List[str]] = None):
+    requester_alias = aliased(User)
+    owner_alias = aliased(User)
+
+    query = (
+        db.query(
+            FileRequest,
+            File.filename.label("file_name"),
+            File.signature.label("signature"),
+            requester_alias.username.label("requester_username"),
+            owner_alias.username.label("owner_username")
+        )
+        .join(File, File.id == FileRequest.file_id)
+        .join(requester_alias, requester_alias.id == FileRequest.requester_id)
+        .join(owner_alias, owner_alias.id == FileRequest.owner_id)
+    )
+
+    if for_owner:
+        # owner 查看：默认关注 owner_id
+        query = query.filter(FileRequest.owner_id == user_id)
+    else:
+        query = query.filter(FileRequest.requester_id == user_id)
+
+    # 支持 status 多值过滤
+    if status:
+        query = query.filter(FileRequest.status.in_(status))
+
+    # 如果是 for_owner 并且不指定 status，通常想看所有包括 pending/approved/rejected
+    return query.order_by(FileRequest.created_at.desc()).all()

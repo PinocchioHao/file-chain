@@ -25,18 +25,6 @@ def get_password_hash(password):
 
 
 def verify_password(plain, hashed):
-    """
-    首选使用 bcrypt 校验；
-    若 hashed 不是有效 bcrypt（例如旧数据存的是明文），则回退到明文比对，保证老用户临时可登录。
-    你们把旧密码全部迁移为 hash 后，可改回：return pwd_context.verify(plain, hashed)
-    """
-    # try:
-    #     # 如果 hashed 是合法的 hash，会直接在这里校验并返回 True/False
-    #     return pwd_context.verify(plain, hashed)
-    # except Exception:
-    #     # 兼容旧数据（明文存储的情况）：临时回退
-    #     return plain == hashed
-
     return pwd_context.verify(plain, hashed)
 
 

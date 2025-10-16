@@ -1,6 +1,5 @@
 from datetime import datetime
 from enum import Enum
-
 from pydantic import BaseModel
 
 
@@ -34,6 +33,7 @@ class FileRequestResponse(BaseModel):
     owner_username: str | None = None
     created_at: datetime
     updated_at: datetime
+    tx_hash: str | None = None
 
     class Config:
-        orm_mode = True
+        from_attributes = True

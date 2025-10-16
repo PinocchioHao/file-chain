@@ -1,189 +1,110 @@
 
+# File-Chain Project Documentation
 
-# File-Chain 项目说明
+## 📖 Overview
 
-## 📖 项目简介
+**File-Chain** is a secure file storage and sharing platform that combines **blockchain** and **cryptographic technologies**.
 
-**File-Chain** 是一个结合 **区块链 + 加密技术** 的安全文件存储与共享平台。
-
-* 项目的目标是确保文件在 **上传、存储、访问、共享** 全生命周期中的 **安全性、可追溯性和防篡改性**。
-* 通过 **AES（对称加密）** 实现文件内容加密，**ECDSA（数字签名）** 实现文件签名；
-* 每个文件的 AES 密钥可使用用户的 **ECC 公钥** 加密保存，确保密钥传输安全；
-* 结合 **区块链** 记录文件元信息、访问申请与审批过程，实现透明与不可篡改；
-* 文件实际存储在 **云端（AWS EC2）**，而文件解密、验签和 AES 密钥解密流程在 **用户本地客户端程序** 中完成，从而兼顾性能与安全性。
-
----
-
-## 📌 项目流程
-
-1. **客户端生成密钥**
-
-   * 用户使用 **客户端程序** (`client_tools/client.py`) 生成：
-
-     * **ECC 密钥对**（加密/解密 AES 密钥）
-     * **ECDSA 密钥对**（签名/验签文件）
-   * 用户自行妥善保存私钥；
-   * 私钥用于注册用户到平台，公钥存储到服务端数据库。
-
-2. **用户注册 & 登录**
-
-   * 用户在后端注册账号，提交 ECC/ECDSA 公钥；
-   * 登录后可进行文件查看、上传、下载和申请等操作。
-
-3. **文件操作**
-
-   * 用户可使用客户端程序对文件进行：
-
-     * **签名**（ECDSA）
-     * **加密**（AES）
-     * **AES 密钥加密/解密**（ECC）
-   * 加密后的文件和对应签名可以上传到平台。
-
-4. **文件访问 & 申请**
-
-   * 用户可浏览平台文件，下载自己的文件或申请访问其他用户上传的文件；
-   * 文件拥有者可审批访问请求：
-
-     * **同意** → 拥有者使用客户端程序获取申请者的 ECC 公钥，加密 AES 密钥并传给请求者；
-     * **拒绝** → 关闭请求。
-   * 请求者收到加密 AES 密钥，可在本地客户端解密 AES，进而解密文件。
-
-> ⚠️ 目前私钥只保存在用户本地，提高安全性；公钥存储在服务器，用于交互和加密操作。
+* The project ensures **security, traceability, and tamper-resistance** throughout the entire file lifecycle — including **uploading, storing, sharing, and access approval**.
+* **AES (symmetric encryption)** is used for file content encryption, and **ECDSA (digital signature)** is used for signing and verification.
+* Each file’s AES key is encrypted with the user’s **ECC public key**, ensuring secure key exchange.
+* **Blockchain** records key actions such as file uploads, access requests, and approvals — providing transparency and immutability.
+* Files are physically stored on **AWS EC2**, while **decryption, verification, and key management** occur locally on the client side — balancing **performance and security**.
 
 ---
 
-## 📂 项目目录结构
+## 📌 Workflow
+
+### 1. Key Generation on the Client
+
+* Users use the **client program** (`client_tools/client.py`) to generate:
+
+  * **ECC key pair** – for encrypting/decrypting AES keys.
+  * **ECDSA key pair** – for signing and verifying files.
+* The **private key** is used locally by the user for encryption and decryption operations and must be stored securely.
+* The **public key** is used for interactions with the platform (e.g., encryption and verification).
+
+### 2. User Registration & Login
+
+* Users register **online** in the system and submit their **ECC/ECDSA public keys**.
+* After logging in, users can view, upload, download, and request access to files.
+
+### 3. File Operations
+
+* Using the client program, users can perform:
+
+  * **File signing** (ECDSA)
+  * **File encryption/decryption** (AES)
+  * **AES key encryption/decryption** (ECC)
+* Encrypted files and their corresponding signatures can then be uploaded to the platform.
+
+### 4. File Access & Request Process
+
+* Users can browse available files on the platform, download their own files, or **submit access requests** for others’ files.
+* File owners can **approve or reject** incoming requests:
+
+  * **Approve** → The owner retrieves the requester’s ECC public key via the online system, uses the client to encrypt the AES key locally, and then sends it back through the system.
+  * **Reject** → The request is closed.
+* Once approved, the requester can decrypt the AES key locally and use it to decrypt the file content.
+
+### 5. Blockchain Integration
+
+* The following operations are **recorded on the Sepolia testnet blockchain**:
+
+  * Successful file uploads
+  * File access requests
+  * Approval or rejection of requests
+* After each blockchain transaction, users can view related information via a popup in the system:
+
+  * Search and filter blockchain records by condition
+  * View detailed record data
+  * Jump directly to the **Sepolia Etherscan** page for transaction verification
+
+> ⚠️ Private keys are **never uploaded** to the server. They are stored locally and only used within the client application to ensure maximum security.
+
+---
+
+## 📂 Project Structure
 
 ```bash
 file-chain
-├─ requirements.txt          # 项目依赖库
-├─ uploads                   # 本地文件上传存储目录
-├─ client_tools              # 本地客户端程序
-│  └─ client.py              # GUI/CLI 客户端，负责生成密钥、文件签名、验签、AES加密解密、ECC AES加密解密
+├─ requirements.txt          # Project dependencies
+├─ uploads                   # Local directory for uploaded files
+├─ client_tools              # Local client application
+│  └─ client.py              # GUI/CLI client for key generation, signing, verification, AES/ECC encryption & decryption
 └─ app
-   ├─ db.py                  # 数据库连接和会话管理
-   ├─ main.py                # 项目入口，FastAPI 启动文件
+   ├─ db.py                  # Database connection and session management
+   ├─ main.py                # Project entry point (FastAPI application)
    │
-   ├─ api                    # API 层，处理路由和请求
-   │  ├─ auth.py             # 登录、注册、JWT 认证相关接口
-   │  ├─ file.py             # 文件上传、查询相关接口
-   │  └─ request.py          # 文件访问申请、审批相关接口
+   ├─ api                    # API layer for request routing
+   │  ├─ auth.py             # Login, registration, and JWT authentication endpoints
+   │  ├─ file.py             # File upload and query endpoints
+   │  ├─ blockchain.py       # Blockchain query endpoints
+   │  └─ request.py          # File access request and approval endpoints
    │
-   ├─ core                   # 核心功能层
-   │  ├─ config.py           # 全局配置项（数据库、密钥等）
-   │  ├─ crypto.py           # 加密、解密、签名等工具函数
-   │  └─ security.py         # JWT 生成与验证，用户认证
+   ├─ core                   # Core utilities and configuration
+   │  ├─ config.py           # Global settings (DB, keys, etc.)
+   │  ├─ crypto.py           # Encryption, decryption, and signature utilities
+   │  └─ security.py         # JWT handling and authentication
    │
-   ├─ models                 # ORM 模型（数据库表映射）
-   │  ├─ file.py             # 文件表定义
-   │  ├─ request.py          # 申请表定义
-   │  └─ user.py             # 用户表定义
+   ├─ models                 # ORM models (database table mapping)
+   │  ├─ file.py             # File table definition
+   │  ├─ blockchain.py       # Blockchain record table
+   │  ├─ request.py          # File request table
+   │  └─ user.py             # User table definition
    │
-   ├─ schemas                # 数据模型（Pydantic Schema，用于接口请求/响应校验）
-   │  ├─ file.py             # 文件相关 Schema
-   │  ├─ request.py          # 文件申请相关 Schema
-   │  └─ user.py             # 用户相关 Schema
+   ├─ schemas                # Pydantic schemas for request/response validation
+   │  ├─ file.py             # File-related schemas
+   │  ├─ blockchain.py       # Blockchain-related schemas
+   │  ├─ request.py          # Request-related schemas
+   │  └─ user.py             # User-related schemas
    │
    ├─ script                 
-   │  └─ database.sql        # 数据库初始化脚本
+   │  └─ database.sql        # Database initialization script
    │
-   └─ services               # 服务层，业务逻辑
-      ├─ file_service.py     # 文件上传/查询逻辑
-      ├─ request_service.py  # 文件申请/审批逻辑
-      └─ user_service.py     # 用户注册/登录逻辑
+   └─ services               # Business logic layer
+      ├─ file_service.py        # File upload and query logic
+      ├─ request_service.py     # Request submission and approval logic
+      ├─ blockchain_service.py  # Blockchain recording and query logic
+      └─ user_service.py        # User registration and login logic
 ```
-
----
-
-## 🚀 启动 & 测试
-
-### 1️⃣ 项目环境准备
-
-* **Python 3.10+**
-* **MySQL 8.0+**
-* **接口测试工具**
-
-安装依赖：
-
-```bash
-pip install -r requirements.txt
-```
-
-### 2️⃣ 数据库配置
-
-修改 `app/core/config.py` 里的数据库连接，例如：
-
-```python
-DB_URL: str = "mysql+pymysql://username:password@localhost:3306/file_chain"
-```
-
-> ⚠️ 根据本地数据库用户名、密码修改。
-
-### 3️⃣ 初始化数据库
-
-执行位于 `/app/script/database.sql` 的 SQL 脚本，创建表结构。
-
-### 4️⃣ 启动后端服务
-
-```bash
-uvicorn app.main:app --reload
-```
-
-### 5️⃣ 验证服务
-
-访问：
-
-```
-http://127.0.0.1:8000
-```
-
-返回：
-
-```json
-{"message": "Welcome to my Demo!"}
-```
-
-### 6️⃣ 客户端使用流程
-
-1. 使用 `client_tools/client.py` 生成 ECC/ECDSA 密钥对，保存私钥；
-2. 使用私钥注册用户到平台；
-3. 登录平台，查看、上传、下载文件；
-4. 对文件使用客户端程序完成签名、AES加密和 AES密钥ECC加密；
-5. 上传加密文件及签名；
-6. 处理文件请求与审批流程：
-
-   * 拥有者同意请求 → 使用客户端生成加密 AES 密钥传给请求者；
-   * 请求者解密 AES 密钥，解密文件。
-
-> ⚠️ 私钥仅保存在用户本地，提高安全性；公钥存储于服务器，用于交互和加密操作。
-
----
-
-## 🤝 协作规范
-
-* **分支管理**
-
-  * 基于 `master` 创建个人分支：
-
-    ```
-    dev-YourName
-    ```
-  * 在个人分支开发，不要直接在 master 上修改。
-
-* **代码合并**
-
-  * 开发完成 → 提交 PR 到 `master`；
-  * 由 **Yuhao** 审核；
-  * 合并前先拉取 master 到自己的分支，解决冲突后再合并。
-
-* **任务分工**
-
-  * 基础框架已搭建并可测试；
-  * 部分功能未实现，代码中已标记 `TODO`；
-  * 开发者需完成自己负责的 `TODO` 模块。
-
-* **沟通**
-
-  * 有任何问题请联系 **Yuhao**。
-
-

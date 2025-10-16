@@ -39,11 +39,12 @@ async def upload_file(
         signature=signature,
         content=content,
     )
+    # 记录区块链
+    tx_hash = record_file_upload(db, db_file.id, current_user.id, current_user.username, db_file.hash, db_file.filename, db_file.signature)
 
-    # TODO 记录区块链元信息
-    record_file_upload(db_file.id, current_user.id, db_file.hash)
-    return db_file
-
+    file_out = FileOut.from_orm(db_file)
+    file_out.tx_hash = tx_hash
+    return file_out
 
 # 🔹 查询文件列表
 @router.get("/list", response_model=list[FileOut])

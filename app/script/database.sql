@@ -49,3 +49,16 @@ CREATE TABLE `users`  (
   UNIQUE INDEX `username`(`username` ASC) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 6 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
+
+-- ----------------------------
+-- Table structure for blockchain_record
+-- ----------------------------
+CREATE TABLE blockchain_record (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    tx_hash VARCHAR(66) NOT NULL,
+    user_id BIGINT NOT NULL,
+    user_name VARCHAR(255) NOT NULL,
+    action VARCHAR(50) NOT NULL,       -- upload / request_submit / request_approve
+    payload JSON,                      
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);

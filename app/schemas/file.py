@@ -20,6 +20,8 @@ class FileOut(FileBase):
     owner_id: int
     owner_name: str
     uploaded_at: datetime
+    tx_hash: str | None = None
+
 
     class Config:
-        orm_mode = True
+        from_attributes = True

@@ -1,108 +1,110 @@
-# File-Chain 项目说明
 
-## 📖 项目简介
+# File-Chain Project Documentation
 
-**File-Chain** 是一个结合 **区块链 + 加密技术** 的安全文件存储与共享平台。
+## 📖 Overview
 
-* 项目旨在确保文件在 **上传、存储、访问、共享** 的全生命周期中，具备 **安全性、可追溯性和防篡改性**。
-* 采用 **AES（对称加密）** 对文件内容进行加密，**ECDSA（数字签名）** 用于文件签名验证。
-* 每个文件的 AES 密钥可使用用户的 **ECC 公钥** 加密存储，确保密钥传输安全。
-* 结合 **区块链** 记录文件元信息、访问申请与审批过程，实现操作透明、不可篡改。
-* 文件实际存储在 **云端（AWS EC2）**，而 **文件解密、验签和 AES 密钥解密流程在用户本地客户端完成**，兼顾性能与安全性。
+**File-Chain** is a secure file storage and sharing platform that combines **blockchain** and **cryptographic technologies**.
 
----
-
-## 📌 项目流程
-
-### 1. 客户端生成密钥
-
-* 用户使用 **客户端程序** (`client_tools/client.py`) 生成：
-
-  * **ECC 密钥对**（用于加密/解密 AES 密钥）
-  * **ECDSA 密钥对**（用于文件签名/验签）
-* 私钥用于 **用户在客户端进行加密/解密操作**，应妥善保存。
-* 公钥可用于平台交互和加密操作。
-
-### 2. 用户注册 & 登录
-
-* 用户在线上系统注册账号，提交 ECC/ECDSA 公钥；
-* 登录后可进行文件查看、上传、下载和申请等操作。
-
-### 3. 文件操作
-
-* 用户可使用客户端程序对文件进行：
-
-  * **签名**（ECDSA）
-  * **加密**（AES）
-  * **AES 密钥加密/解密**（ECC）
-* 加密后的文件和对应签名可以上传到平台。
-
-### 4. 文件访问 & 申请
-
-* 用户可浏览平台文件，下载自己的文件或申请访问其他用户上传的文件。
-* 文件拥有者可审批访问请求：
-
-  * **同意** → 拥有者通过线上系统获取申请者的 ECC 公钥，客户端加密 AES 密钥后，通过线上系统传给请求者；
-  * **拒绝** → 请求关闭。
-* 请求者收到加密 AES 密钥，可在客户端解密 AES 密钥并进一步解密文件。
-
-### 5. 区块链记录
-
-* 在以下操作完成时，会将相关信息写入 **Sepolia 测试链**：
-
-  * 文件上传成功
-  * 用户发起文件访问请求
-  * 拥有者审批（同意或拒绝）
-* 用户可通过平台弹窗进入 **区块链界面**：
-
-  * 按条件查询区块链上所有相关操作记录
-  * 查看记录详情
-  * 跳转至 **Sepolia 区块链浏览器** 查看交易详情
-
-> ⚠️ 私钥始终仅保存在用户本地，平台仅存储公钥和加密后的文件信息，提高安全性。
+* The project ensures **security, traceability, and tamper-resistance** throughout the entire file lifecycle — including **uploading, storing, sharing, and access approval**.
+* **AES (symmetric encryption)** is used for file content encryption, and **ECDSA (digital signature)** is used for signing and verification.
+* Each file’s AES key is encrypted with the user’s **ECC public key**, ensuring secure key exchange.
+* **Blockchain** records key actions such as file uploads, access requests, and approvals — providing transparency and immutability.
+* Files are physically stored on **AWS EC2**, while **decryption, verification, and key management** occur locally on the client side — balancing **performance and security**.
 
 ---
 
-## 📂 项目目录结构
+## 📌 Workflow
+
+### 1. Key Generation on the Client
+
+* Users use the **client program** (`client_tools/client.py`) to generate:
+
+  * **ECC key pair** – for encrypting/decrypting AES keys.
+  * **ECDSA key pair** – for signing and verifying files.
+* The **private key** is used locally by the user for encryption and decryption operations and must be stored securely.
+* The **public key** is used for interactions with the platform (e.g., encryption and verification).
+
+### 2. User Registration & Login
+
+* Users register **online** in the system and submit their **ECC/ECDSA public keys**.
+* After logging in, users can view, upload, download, and request access to files.
+
+### 3. File Operations
+
+* Using the client program, users can perform:
+
+  * **File signing** (ECDSA)
+  * **File encryption/decryption** (AES)
+  * **AES key encryption/decryption** (ECC)
+* Encrypted files and their corresponding signatures can then be uploaded to the platform.
+
+### 4. File Access & Request Process
+
+* Users can browse available files on the platform, download their own files, or **submit access requests** for others’ files.
+* File owners can **approve or reject** incoming requests:
+
+  * **Approve** → The owner retrieves the requester’s ECC public key via the online system, uses the client to encrypt the AES key locally, and then sends it back through the system.
+  * **Reject** → The request is closed.
+* Once approved, the requester can decrypt the AES key locally and use it to decrypt the file content.
+
+### 5. Blockchain Integration
+
+* The following operations are **recorded on the Sepolia testnet blockchain**:
+
+  * Successful file uploads
+  * File access requests
+  * Approval or rejection of requests
+* After each blockchain transaction, users can view related information via a popup in the system:
+
+  * Search and filter blockchain records by condition
+  * View detailed record data
+  * Jump directly to the **Sepolia Etherscan** page for transaction verification
+
+> ⚠️ Private keys are **never uploaded** to the server. They are stored locally and only used within the client application to ensure maximum security.
+
+---
+
+## 📂 Project Structure
 
 ```bash
 file-chain
-├─ requirements.txt          # 项目依赖库
-├─ uploads                   # 本地文件上传存储目录
-├─ client_tools              # 本地客户端程序
-│  └─ client.py              # GUI/CLI 客户端，负责生成密钥、文件签名、验签、AES加密解密、ECC AES加密解密
+├─ requirements.txt          # Project dependencies
+├─ uploads                   # Local directory for uploaded files
+├─ client_tools              # Local client application
+│  └─ client.py              # GUI/CLI client for key generation, signing, verification, AES/ECC encryption & decryption
 └─ app
-   ├─ db.py                  # 数据库连接和会话管理
-   ├─ main.py                # 项目入口，FastAPI 启动文件
+   ├─ db.py                  # Database connection and session management
+   ├─ main.py                # Project entry point (FastAPI application)
    │
-   ├─ api                    # API 层，处理路由和请求
-   │  ├─ auth.py             # 登录、注册、JWT 认证相关接口
-   │  ├─ file.py             # 文件上传、查询相关接口
-   │  ├─ blockchain.py       # 区块链查询相关接口
-   │  └─ request.py          # 文件访问申请、审批相关接口
+   ├─ api                    # API layer for request routing
+   │  ├─ auth.py             # Login, registration, and JWT authentication endpoints
+   │  ├─ file.py             # File upload and query endpoints
+   │  ├─ blockchain.py       # Blockchain query endpoints
+   │  └─ request.py          # File access request and approval endpoints
    │
-   ├─ core                   # 核心功能层
-   │  ├─ config.py           # 全局配置项（数据库、密钥等）
-   │  └─ security.py         # JWT 生成与验证，用户认证
+   ├─ core                   # Core utilities and configuration
+   │  ├─ config.py           # Global settings (DB, keys, etc.)
+   │  ├─ crypto.py           # Encryption, decryption, and signature utilities
+   │  └─ security.py         # JWT handling and authentication
    │
-   ├─ models                 # ORM 模型（数据库表映射）
-   │  ├─ file.py             # 文件表定义
-   │  ├─ blockchain.py       # 区块链表定义
-   │  ├─ request.py          # 申请表定义
-   │  └─ user.py             # 用户表定义
+   ├─ models                 # ORM models (database table mapping)
+   │  ├─ file.py             # File table definition
+   │  ├─ blockchain.py       # Blockchain record table
+   │  ├─ request.py          # File request table
+   │  └─ user.py             # User table definition
    │
-   ├─ schemas                # 数据模型（Pydantic Schema，用于接口请求/响应校验）
-   │  ├─ file.py             # 文件相关 Schema
-   │  ├─ blockchain.py       # 区块链相关 Schema
-   │  ├─ request.py          # 文件申请相关 Schema
-   │  └─ user.py             # 用户相关 Schema
+   ├─ schemas                # Pydantic schemas for request/response validation
+   │  ├─ file.py             # File-related schemas
+   │  ├─ blockchain.py       # Blockchain-related schemas
+   │  ├─ request.py          # Request-related schemas
+   │  └─ user.py             # User-related schemas
    │
    ├─ script                 
-   │  └─ database.sql        # 数据库初始化脚本
+   │  └─ database.sql        # Database initialization script
    │
-   └─ services               # 服务层，业务逻辑
-      ├─ file_service.py        # 文件上传/查询逻辑
-      ├─ request_service.py     # 文件申请/审批逻辑
-      ├─ blockchain_service.py  # 区块链申请/审批逻辑
-      └─ user_service.py        # 用户注册/登录逻辑
+   └─ services               # Business logic layer
+      ├─ file_service.py        # File upload and query logic
+      ├─ request_service.py     # Request submission and approval logic
+      ├─ blockchain_service.py  # Blockchain recording and query logic
+      └─ user_service.py        # User registration and login logic
 ```

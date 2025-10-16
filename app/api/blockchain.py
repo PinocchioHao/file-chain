@@ -12,7 +12,7 @@ router = APIRouter(prefix="/blockchain", tags=["Blockchain"])
 @router.get("/", response_model=list[BlockchainRecordOut])
 def get_blockchain_records(
     db: Session = Depends(get_db),
-    username: Optional[str] = Query(None, description="发起人用户名（模糊匹配，匹配 user_name 列）"),
+    user_name: Optional[str] = Query(None, description="发起人用户名（模糊匹配，匹配 user_name 列）"),
     tx_hash: Optional[str] = Query(None, description="交易哈希（模糊匹配）"),
     action: Optional[str] = Query(None, description="动作筛选"),
     start_time: Optional[datetime] = Query(None, description="开始时间（ISO 格式）"),
@@ -28,8 +28,8 @@ def get_blockchain_records(
     """
     q = db.query(BlockchainRecord)
 
-    if username:
-        q = q.filter(BlockchainRecord.user_name.ilike(f"%{username}%"))
+    if user_name:
+        q = q.filter(BlockchainRecord.user_name.ilike(f"%{user_name}%"))
     if tx_hash:
         q = q.filter(BlockchainRecord.tx_hash.ilike(f"%{tx_hash}%"))
     if action:

@@ -1,4 +1,6 @@
 from datetime import datetime
+from typing import Optional
+
 from pydantic import BaseModel
 
 
@@ -20,8 +22,7 @@ class FileOut(FileBase):
     owner_id: int
     owner_name: str
     uploaded_at: datetime
-    tx_hash: str
-
+    tx_hash: Optional[str] = None
 
     class Config:
         from_attributes = True

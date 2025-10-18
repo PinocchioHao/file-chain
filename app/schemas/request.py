@@ -1,5 +1,7 @@
 from datetime import datetime
 from enum import Enum
+from typing import Optional
+
 from pydantic import BaseModel
 
 
@@ -16,7 +18,7 @@ class FileRequestCreate(BaseModel):
 class FileRequestApprove(BaseModel):
     request_id: int
     decision: RequestStatus
-    encrypted_aes_key: str
+    encrypted_aes_key: Optional[str] = None
 
 
 class FileRequestResponse(BaseModel):
@@ -25,15 +27,15 @@ class FileRequestResponse(BaseModel):
     requester_id: int
     owner_id: int
     status: RequestStatus
-    requester_ecc_public_key: str
-    encrypted_aes_key: str
-    file_name: str
-    signature: str
-    requester_username: str
-    owner_username: str
+    requester_ecc_public_key: Optional[str] = None
+    encrypted_aes_key: Optional[str] = None
+    file_name: Optional[str] = None
+    signature: Optional[str] = None
+    requester_username: Optional[str] = None
+    owner_username: Optional[str] = None
     created_at: datetime
     updated_at: datetime
-    tx_hash: str
+    tx_hash: Optional[str] = None
 
     class Config:
         from_attributes = True

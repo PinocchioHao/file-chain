@@ -16,7 +16,7 @@ class FileRequestCreate(BaseModel):
 class FileRequestApprove(BaseModel):
     request_id: int
     decision: RequestStatus
-    encrypted_aes_key: str | None = None
+    encrypted_aes_key: str
 
 
 class FileRequestResponse(BaseModel):
@@ -25,15 +25,15 @@ class FileRequestResponse(BaseModel):
     requester_id: int
     owner_id: int
     status: RequestStatus
-    requester_ecc_public_key: str | None = None
-    encrypted_aes_key: str | None = None
-    file_name: str | None = None
-    signature: str | None = None
-    requester_username: str | None = None
-    owner_username: str | None = None
+    requester_ecc_public_key: str
+    encrypted_aes_key: str
+    file_name: str
+    signature: str
+    requester_username: str
+    owner_username: str
     created_at: datetime
     updated_at: datetime
-    tx_hash: str | None = None
+    tx_hash: str
 
     class Config:
         from_attributes = True

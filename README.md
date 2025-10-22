@@ -84,7 +84,6 @@ file-chain
    │
    ├─ core                   # Core utilities and configuration
    │  ├─ config.py           # Global settings (DB, keys, etc.)
-   │  ├─ crypto.py           # Encryption, decryption, and signature utilities
    │  └─ security.py         # JWT handling and authentication
    │
    ├─ models                 # ORM models (database table mapping)

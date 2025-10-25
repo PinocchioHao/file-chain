@@ -36,6 +36,8 @@ class FileRequestResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
     tx_hash: Optional[str] = None
+    owner_ecdsa_public_key: Optional[str] = None
+
 
     class Config:
         from_attributes = True

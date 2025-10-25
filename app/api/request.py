@@ -49,37 +49,39 @@ def approve_file_request(approve_data: FileRequestApprove, db: Session = Depends
     return resp
 
 
-
+# 接口已合并
 # 查看我的申请
-@router.get("/my", response_model=list[FileRequestResponse])
-def view_my_requests(db: Session = Depends(get_db), current_user=Depends(get_current_user)):
-    rows = get_requests_with_users(db, current_user.id, for_owner=False)
-    result = []
-    for req, file_name, signature, requester_username, owner_username in rows:
-        result.append(FileRequestResponse(
-            **req.__dict__,
-            file_name=file_name,
-            signature=signature,
-            requester_username=requester_username,
-            owner_username=owner_username
-        ))
-    return result
-
-
-# 查看待审批请求
-@router.get("/pending", response_model=list[FileRequestResponse])
-def view_pending_requests(db: Session = Depends(get_db), current_user=Depends(get_current_user)):
-    rows = get_requests_with_users(db, current_user.id, for_owner=True)
-    result = []
-    for req, file_name, signature, requester_username, owner_username in rows:
-        result.append(FileRequestResponse(
-            **req.__dict__,
-            file_name=file_name,
-            signature=signature,
-            requester_username=requester_username,
-            owner_username=owner_username
-        ))
-    return result
+# @router.get("/my", response_model=list[FileRequestResponse])
+# def view_my_requests(db: Session = Depends(get_db), current_user=Depends(get_current_user)):
+#     rows = get_requests_with_users(db, current_user.id, for_owner=False)
+#     result = []
+#     for req, file_name, signature, requester_username, owner_username, owner_ecdsa_public_key in rows:
+#         result.append(FileRequestResponse(
+#             **req.__dict__,
+#             file_name=file_name,
+#             signature=signature,
+#             requester_username=requester_username,
+#             owner_username=owner_username,
+#             owner_ecdsa_public_key=owner_ecdsa_public_key
+#         ))
+#     return result
+#
+#
+# # 查看待审批请求
+# @router.get("/pending", response_model=list[FileRequestResponse])
+# def view_pending_requests(db: Session = Depends(get_db), current_user=Depends(get_current_user)):
+#     rows = get_requests_with_users(db, current_user.id, for_owner=True)
+#     result = []
+#     for req, file_name, signature, requester_username, owner_username, owner_ecdsa_public_key in rows:
+#         result.append(FileRequestResponse(
+#             **req.__dict__,
+#             file_name=file_name,
+#             signature=signature,
+#             requester_username=requester_username,
+#             owner_username=owner_username,
+#             owner_ecdsa_public_key = owner_ecdsa_public_key
+#         ))
+#     return result
 
 
 @router.get("/requests", response_model=list[FileRequestResponse])
@@ -111,8 +113,9 @@ def view_requests(
             file_name=file_name,
             signature=signature,
             requester_username=requester_username,
-            owner_username=owner_username
+            owner_username=owner_username,
+            owner_ecdsa_public_key=owner_ecdsa_public_key
         )
-        for req, file_name, signature, requester_username, owner_username in rows
+        for req, file_name, signature, requester_username, owner_username, owner_ecdsa_public_key in rows
     ]
     return result

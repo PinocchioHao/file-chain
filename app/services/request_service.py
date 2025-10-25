@@ -120,7 +120,8 @@ def get_requests_with_users(db, user_id: int, for_owner: bool = False, status: O
             File.filename.label("file_name"),
             File.signature.label("signature"),
             requester_alias.username.label("requester_username"),
-            owner_alias.username.label("owner_username")
+            owner_alias.username.label("owner_username"),
+            owner_alias.ecdsa_public_key.label("owner_ecdsa_public_key")  # 新增
         )
         .join(File, File.id == FileRequest.file_id)
         .join(requester_alias, requester_alias.id == FileRequest.requester_id)
@@ -128,14 +129,11 @@ def get_requests_with_users(db, user_id: int, for_owner: bool = False, status: O
     )
 
     if for_owner:
-        # owner 查看：默认关注 owner_id
         query = query.filter(FileRequest.owner_id == user_id)
     else:
         query = query.filter(FileRequest.requester_id == user_id)
 
-    # 支持 status 多值过滤
     if status:
         query = query.filter(FileRequest.status.in_(status))
 
-    # 如果是 for_owner 并且不指定 status，通常想看所有包括 pending/approved/rejected
     return query.order_by(FileRequest.created_at.desc()).all()
